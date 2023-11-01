@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Playlist Video</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #title-section {
+            width: 100%;
+            background-color: #F3180A;
+            color: #fff;
+            text-align: center;
+            padding: 10px 0;
+        }
+
+        #title {
+            margin: 0;
+        }
+
+        #content-container {
+            display: flex;
+            flex: 1;
+            width: 100%;
+        }
+
+        #video-container {
+            flex: 2;
+            padding: 20px;
+        }
+
+        #player {
+            width: 100%;
+            height: 350px;
+        }
+
+        #playlist-container {
+            flex: 1;
+            background-color: #E8DFDE;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+		
+		#prev-video-button, #next-video-button {
+    font-size: 16px;
+    padding: 10px 20px;
+    background-color: #F3180A;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    margin-right: 10px; /* Aggiunge uno spazio tra i pulsanti */
+}
+
+
+
+        .video-item {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            padding: 10px;
+            border: 2px solid #F3180A;
+        }
+
+        .video-icon {
+            width: 20px;
+            height: 20px;
+            color: #F3180A;
+            margin-right: 20px;
+			margin-left: 10px;
+			
+        }
+
+        #start-quiz-container {
+            margin-top: 20px;
+        }
+
+        #start-quiz-button {
+            font-size: 16px;
+            padding: 10px 198px;
+            background-color: #F3180A;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+			position: absolute;
+			right:10px;
+        }
+
+        #quiz-container {
+            display: none;
+            flex: 1;
+            padding: 20px;
+            background-color: #E8DFDE;
+        }
+
+        #quiz-question {
+            font-size: 18px;
+        }
+
+        #quiz-choices {
+            display: flex;
+            flex-direction: column;
+        }
+
+        #quiz-choices label {
+            display: block;
+        }
+
+        #quiz-buttons {
+            margin-top: 10px;
+        }
+
+        #quiz-result {
+            margin-top: 10px;
+        }
+
+        #retry-button,
+        #download-certificate {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="title-section">
+        <h1 id="title">
+            <i class="fab fa-youtube"></i> Titolo della Playlist
+        </h1>
+    </div>
+
+    <div id="content-container">
+        <div id="video-container">
+            <div id="player"></div>
+            <div id="control-buttons">
+            <button id="prev-video-button" onclick="playPreviousVideo()">Video Precedente</button>
+            <button id="next-video-button" onclick="playNextVideo()">Video Successivo</button>
+        </div>
+        </div>
+
+        <div id="playlist-container">
+            <div class="video-item" onclick="playVideo('VIDEO_ID_1')">
+                <i class="fab fa-youtube video-icon"></i> Video 1
+            </div>
+            <div class="video-item" onclick="playVideo('VIDEO_ID_2')">
+                <i class="fab fa-youtube video-icon"></i> Video 2
+            </div>
+            <div class="video-item" onclick="playVideo('VIDEO_ID_3')">
+                <i class="fab fa-youtube video-icon"></i> Video 3
+            </div>
+        </div>
+    </div>
+
+    <div id="start-quiz-container">
+        <button id="start-quiz-button" onclick="startQuiz()">Inizia il Quiz</button>
+    </div>
+
+    <div id="quiz-container">
+        <div id="quiz-question">
+            <span id="question-text"></span>
+        </div>
+        <div id="quiz-choices">
+            <label>
+                <input type="radio" name="quiz-answer" value="A"> <span id="choice-A"></span>
+            </label>
+            <label>
+                <input type="radio" name="quiz-answer" value="B"> <span id="choice-B"></span>
+            </label>
+            <label>
+                <input type="radio" name="quiz-answer" value="C"> <span id="choice-C"></span>
+            </label>
+        </div>
+        <div id="quiz-buttons">
+            <button onclick="checkQuizAnswer()">Verifica Risposta</button>
+            <button id="next-question" onclick="nextQuestion()">Prossima Domanda</button>
+            <button id="retry-button" onclick="retryQuiz()">Riprova</button>
+        </div>
+        <div id="quiz-result">
+            <!-- Qui verrà visualizzato il risultato del quiz -->
+        </div>
+        <div id="download-certificate">
+            <a id="certificate-link" href="link_al_certificato.pdf" download>
+                <button>Complimenti, scarica il certificato</button>
+            </a>
+        </div>
+    </div>
+
+    <script>
+        var tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        var firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+        var player;
+        var videoIds = ['PNwVq8JmltQ', 'VIDEO_ID_2', 'VIDEO_ID_3'];
+        var currentVideoIndex = 0;
+
+        var quizQuestions = [
+            {
+                question: 'Domanda 1: Qual è la risposta corretta?',
+                choices: {
+                    A: 'Risposta A',
+                    B: 'Risposta B',
+                    C: 'Risposta C'
+                },
+                correctAnswer: 'A'
+            },
+            {
+                question: 'Domanda 2: Qual è la risposta corretta?',
+                choices: {
+                    A: 'Risposta A',
+                    B: 'Risposta B',
+                    C: 'Risposta C'
+                },
+                correctAnswer: 'B'
+            }
+            // Aggiungi altre domande qui
+        ];
+
+        var currentQuestionIndex = 0;
+        var correctAnswersCount = 0;
+        var quizStarted = false;
+
+        function displayQuestion() {
+            var currentQuestion = quizQuestions[currentQuestionIndex];
+            document.getElementById('question-text').textContent = currentQuestion.question;
+            document.getElementById('choice-A').textContent = currentQuestion.choices.A;
+            document.getElementById('choice-B').textContent = currentQuestion.choices.B;
+            document.getElementById('choice-C').textContent = currentQuestion.choices.C;
+            document.getElementById('next-question').style.display = 'none';
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < quizQuestions.length) {
+                displayQuestion();
+                document.getElementById('quiz-result').textContent = '';
+                document.getElementById('retry-button').style.display = 'none';
+            } else {
+                document.getElementById('quiz-question').textContent = 'Hai completato il quiz!';
+                document.getElementById('quiz-choices').style.display = 'none';
+                document.getElementById('quiz-buttons').style.display = 'none';
+                if (correctAnswersCount === quizQuestions.length) {
+                    document.getElementById('download-certificate').style.display = 'block';
+                }
+            }
+        }
+
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('player', {
+                height: '360',
+                width: '640',
+                videoId: videoIds[currentVideoIndex],
+                playerVars: {
+                    'autoplay': 1,
+                    'controls': 1
+                },
+                events: {
+                    'onReady': onPlayerReady
+                }
+            });
+        }
+
+        function onPlayerReady(event) {
+            event.target.playVideo();
+        }
+
+        function playVideo(videoId) {
+            player.loadVideoById(videoId);
+        }
+
+        function playPreviousVideo() {
+            if (currentVideoIndex > 0) {
+                currentVideoIndex--;
+                playVideo(videoIds[currentVideoIndex]);
+            }
+        }
+
+        function playNextVideo() {
+            if (currentVideoIndex < videoIds.length - 1) {
+                currentVideoIndex++;
+                playVideo(videoIds[currentVideoIndex]);
+            }
+        }
+
+        function startQuiz() {
+            if (!quizStarted) {
+                quizStarted = true;
+                document.getElementById('start-quiz-button').style.display = 'none';
+                document.getElementById('quiz-container').style.display = 'block';
+                displayQuestion();
+            }
+        }
+
+        function checkQuizAnswer() {
+            var selectedAnswer = document.querySelector('input[name="quiz-answer"]:checked');
+            if (selectedAnswer && selectedAnswer.value === quizQuestions[currentQuestionIndex].correctAnswer) {
+                document.getElementById('quiz-result').textContent = 'Risposta corretta!';
+                correctAnswersCount++;
+                document.getElementById('next-question').style.display = 'block';
+            } else {
+                document.getElementById('quiz-result').textContent = 'Alcune risposte non sono corrette. Riprova.';
+                document.getElementById('retry-button').style.display = 'block';
+            }
+        }
+
+        function retryQuiz() {
+            currentQuestionIndex = 0;
+            correctAnswersCount = 0;
+            quizStarted = false;
+            document.getElementById('quiz-result').textContent = '';
+            document.getElementById('retry-button').style.display = 'none';
+            document.getElementById('download-certificate').style.display = 'none';
+            document.getElementById('quiz-container').style.display = 'none';
+            document.getElementById('start-quiz-button').style.display = 'block';
+        }
+    </script>
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
